@@ -8,6 +8,8 @@ from hybrid_sort import hybrid_sort1, hybrid_sort2, hybrid_sort3
 import math, random, time
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib.lines as mlines
+
 
 
 # TO-DOS:
@@ -24,7 +26,8 @@ from matplotlib import pyplot as plt
 #    4. Plotting different Shell sort algorithms and different Hybrid-sort algorithms for each permutation
 #    5. For each algorithm, plotting all versions, on all permutations in a single plot (1 plot for each algorithm)
 
-def plot_data(axis, x_axis, runtime_results, title, algorithms, inputs, labels):
+
+def plot_data(axis, bf_axis, x_axis, runtime_results, title, algorithms, inputs, labels):
 
     colors = ['blue', 'red', 'green', 'yellow', 'purple', 'orange', 'brown', 'cyan', 'pink']
     linestyles = ['solid', 'dashed', 'dotted']
@@ -32,15 +35,34 @@ def plot_data(axis, x_axis, runtime_results, title, algorithms, inputs, labels):
     axis.set_title(title, fontsize='8')
     axis.set_xlabel('Input Size (# of elements)', fontsize='8')
     axis.set_ylabel('Runtime (ms)', fontsize='8')
-
     axis.set_xscale('log', base=2)  # Set x-axis scale to logarithmic with base 2
     axis.set_yscale('log', base=2)  # Set y-axis scale to logarithmic
 
+    handles = []  # To store custom legend handles
+
     for i, alg in enumerate(algorithms):
         for j, p in enumerate(inputs):
-            axis.plot(x_axis, runtime_results[alg][p], linestyle=linestyles[j], color=colors[i], marker='.')
+            x_log = np.log2(x_axis)
+            y_log = np.log2(runtime_results[alg][p])
+            axis.plot(x_log, y_log, linestyle=linestyles[j], color=colors[i], marker='.')
+
+            # best fit line
+            if bf_axis != None:
+                slope, intercept = np.polyfit(x_log, y_log, 1)
+                bf_axis.plot(x_log, (slope*x_log)+intercept, color=colors[i], linestyle = 'solid')
+
+                handle = mlines.Line2D([], [], color=colors[i], label=algorithms[i])
+                handles.append(handle)
 
     axis.legend(labels=labels, loc='best', facecolor='white', edgecolor='black', fontsize='6', labelcolor='black')
+    
+    if bf_axis != None:
+        bf_axis.set_xlabel('Input Size (# of elements)')
+        bf_axis.set_ylabel('Runtime (ms)')
+        bf_axis.set_xscale('log', base=2)
+        bf_axis.set_yscale('log', base=2)
+        bf_axis.legend(handles=handles, loc='best', facecolor='white', edgecolor='black', fontsize='6', labelcolor='black')
+
 
 def get_avg_runtime(arr, algorithm):
     # run algorithm with given array 10 times
@@ -133,25 +155,27 @@ def main():
     f.write("\n\n")
 
     # plot the data on log log plots
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    fig, ((ax1, ax2, ax3),(ax4, ax5, ax6))  = plt.subplots(2, 3)
     input_keys = ["uniform", "almost_sorted", "reversed"]
     x_axis = [100, 500, 1000, 2500, 5000]
 
     # **** COMMENT OUT ONE SECTION AT A TIME ***
 
     # For the sorting algorithms
-    # plot_data(ax1, x_axis, runtime_results, "Runtimes for Insertion_sort and Merge sort", ['insertion_sort', 'merge_sort'], input_keys, input_keys)
-    # plot_data(ax2, x_axis, runtime_results, "Runtimes for 4 Shell sort algorithms", ["shell_sort1", "shell_sort2", "shell_sort3", "shell_sort4"], input_keys, input_keys)
-    # plot_data(ax3, x_axis, runtime_results, "Runtimes for Hybrid sort algorithms", ["hybrid_sort1", "hybrid_sort2", "hybrid_sort3"], input_keys, input_keys)
+    # print("Plotting insertion and merge sort...")
+    # plot_data(ax1, ax4, x_axis, runtime_results, "Runtimes for Insertion_sort and Merge sort", ['insertion_sort', 'merge_sort'], input_keys, input_keys)
+    # print("Plotting shell sort...")
+    # plot_data(ax2, ax5, x_axis, runtime_results, "Runtimes for 4 Shell sort algorithms", ["shell_sort1", "shell_sort2", "shell_sort3", "shell_sort4"], input_keys, input_keys)
+    # print("Plotting hybrid sort...")
+    # plot_data(ax3, ax6,  x_axis, runtime_results, "Runtimes for Hybrid sort algorithms", ["hybrid_sort1", "hybrid_sort2", "hybrid_sort3"], input_keys, input_keys)
 
     # comparing permutations between each sorting algorithm
-    # plot_data(ax1, x_axis, runtime_results, "Runtime of Uniform Permutations", algo_keys, ['uniform'], algo_keys)
-    # plot_data(ax2, x_axis, runtime_results, "Runtime of Almost-Sorted Permutations", algo_keys, ['almost_sorted'], algo_keys)
-    # plot_data(ax3, x_axis, runtime_results, "Runtime of Reversed Permutations", algo_keys, ['reversed'], algo_keys)
-
-    # plot_data(ax1, x_axis, runtime_results, "Runtime of Uniform Permutations", algo_keys, ['uniform'], algo_keys)
-    # plot_data(ax2, x_axis, runtime_results, "Runtime of Almost-Sorted Permutations", algo_keys, ['almost_sorted'], algo_keys)
-    # plot_data(ax3, x_axis, runtime_results, "Runtime of Reversed Permutations", algo_keys, ['reversed'], algo_keys)
+    print("Plotting uniform permutations...")
+    plot_data(ax1, None, x_axis, runtime_results, "Runtime of Uniform Permutations", algo_keys, ['uniform'], algo_keys)
+    print("Plotting almost-sorted permutations...")
+    plot_data(ax2, None, x_axis, runtime_results, "Runtime of Almost-Sorted Permutations", algo_keys, ['almost_sorted'], algo_keys)
+    print("Plotting reversed permutations...")
+    plot_data(ax3, None, x_axis, runtime_results, "Runtime of Reversed Permutations", algo_keys, ['reversed'], algo_keys)
 
     plt.show()
 
